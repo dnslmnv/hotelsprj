@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Body
 from fastapi.openapi.docs import (
     get_swagger_ui_html,
     get_swagger_ui_oauth2_redirect_html,
@@ -56,8 +56,19 @@ def delete_hotels(
 ):
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
-    return {"status":"OK"}
+    return {"status": "OK"}
+
+@app.post("/hotels")
+def create_hotels(
+        title: str = Body(embed=True)
+):
+    global hotels
+    hotels.append({
+        "id": hotels[-1]["id"] + 1,
+        "title": title
+    })
+    return {"status": "OK"}
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True, port=8001)
+    uvicorn.run("main:app", reload=True, port=8000)
