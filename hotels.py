@@ -147,8 +147,8 @@ hotels = [
 def get_hotels(
         id: int | None = Query(None, description="Айди отеля"),
         title: str | None = Query(None, description="Название отеля"),
-        page: int | None = Query(None, description="Страница отображения"),
-        per_page: int | None = Query(None, description="Количество элементов на странице")
+        page: int | None = Query(None, description="Страница отображения", gt = 1),
+        per_page: int | None = Query(None, description="Количество элементов на странице", gt = 1, lt = 30)
 ):
     hotels_ = []
     for hotel in hotels:
@@ -158,18 +158,9 @@ def get_hotels(
             continue
         hotels_.append(hotel)
 
-    counter = 0
-    if page: counter += 1
-    if per_page: counter += 1
-    if counter < 2:
-        return {"status": "ERROR"}
-    if counter == 2:
-        length = len(hotels_)
-        end_position = (page * per_page)
-        start_position = end_position - per_page
-        if start_position > length - 1: return {"status": "ERROR"}
-        end_position = end_position if end_position < length else length
-        return hotels_[start_position: end_position]
+    if page and per_page:
+        #chain slicing
+        return hotels_[per_page * (page - 1):][:per_page]
     return hotels_
 
 
