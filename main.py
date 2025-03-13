@@ -4,9 +4,19 @@ from fastapi.openapi.docs import (
     get_swagger_ui_oauth2_redirect_html,
 )
 import uvicorn
-
+import sys
 
 app = FastAPI(docs_url=None)
+
+
+def receive_signal(signalNumber, frame):
+    print('Received:', signalNumber)
+    sys.exit()
+
+@app.on_event("startup")
+async def startup_event():
+    import signal
+    signal.signal(signal.SIGINT, receive_signal)
 
 
 @app.get("/docs", include_in_schema=False)
@@ -24,6 +34,7 @@ hotels = [
     {"id":2, "title":"Дубай"},
 ]
 
+
 @app.get("/hotels")
 def get_hotels(
         id: int | None = Query(None, description="Айди отеля"),
@@ -37,6 +48,15 @@ def get_hotels(
             continue
         hotels_.append(hotel)
     return hotels_
+
+
+@app.delete("/hotels/{hotel_id}")
+def delete_hotels(
+    hotel_id: int,
+):
+    global hotels
+    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
+    return {"status":"OK"}
 
 
 if __name__ == "__main__":
