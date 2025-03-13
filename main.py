@@ -61,41 +61,31 @@ def create_hotels(
 @app.put("/hotels/{hotel_id}")
 def edit_hotels_put(
         hotel_id: int,
-        title: str = Body(embed=True),
-        name: str = Body(embed=True),
+        title: str = Body(),
+        name: str = Body(),
 ):
-    hotel_message = None
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            hotel["title"] = title
-            hotel["name"] = name
-            hotel_message = hotel
-            break
-    else:
-        return {"status": "ERROR", "message": "No hotel with provided ID"}
-    return {"status": "OK", "hotel": hotel_message}
+    global hotels
+    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
+    hotel["title"] = title
+    hotel["name"] = name
+    return {"status": "OK"}
 
 
-@app.patch("/hotels/{hotel_id}")
+@app.patch("/hotels/{hotel_id}",
+           summary="Частичное обновление данных об отеле",
+           description="Можно передавать не все значения")
 def edit_hotels_patch(
         hotel_id: int,
-        title: str | None = Body(None, embed=True),
-        name: str | None = Body(None, embed=True),
+        title: str | None = Body(None),
+        name: str | None = Body(None),
 ):
-    hotel_message = None
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            if title:
-                hotel["title"] = title
-            elif name:
-                hotel["name"] = name
-            else:
-                return {"status": "ERROR", "message": "No data provided"}
-            hotel_message = hotel
-            break
-    else:
-        return {"status": "ERROR", "message": "No hotel with provided ID"}
-    return {"status": "OK", "hotel": hotel_message}
+    global hotels
+    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
+    if title:
+        hotel["title"] = title
+    if name:
+        hotel["name"] = name
+    return {"status": "OK"}
 
 
 if __name__ == "__main__":
