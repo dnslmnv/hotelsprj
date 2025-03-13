@@ -4,19 +4,8 @@ from fastapi.openapi.docs import (
     get_swagger_ui_oauth2_redirect_html,
 )
 import uvicorn
-import sys
 
 app = FastAPI(docs_url=None)
-
-
-def receive_signal(signalNumber, frame):
-    print('Received:', signalNumber)
-    sys.exit()
-
-@app.on_event("startup")
-async def startup_event():
-    import signal
-    signal.signal(signal.SIGINT, receive_signal)
 
 
 @app.get("/docs", include_in_schema=False)
@@ -30,8 +19,8 @@ async def custom_swagger_ui_html():
     )
 
 hotels = [
-    {"id":1, "title":"Sochi"},
-    {"id":2, "title":"Дубай"},
+    {"id":1, "title":"Sochi", "name": "5star"},
+    {"id":2, "title":"Дубай", "name": "Jingle"},
 ]
 
 
@@ -69,6 +58,45 @@ def create_hotels(
     })
     return {"status": "OK"}
 
+@app.put("/hotels/{hotel_id}")
+def edit_hotels_put(
+        hotel_id: int,
+        title: str = Body(embed=True),
+        name: str = Body(embed=True),
+):
+    hotel_message = None
+    for hotel in hotels:
+        if hotel["id"] == hotel_id:
+            hotel["title"] = title
+            hotel["name"] = name
+            hotel_message = hotel
+            break
+    else:
+        return {"status": "ERROR", "message": "No hotel with provided ID"}
+    return {"status": "OK", "hotel": hotel_message}
+
+
+@app.patch("/hotels/{hotel_id}")
+def edit_hotels_patch(
+        hotel_id: int,
+        title: str | None = Body(None, embed=True),
+        name: str | None = Body(None, embed=True),
+):
+    hotel_message = None
+    for hotel in hotels:
+        if hotel["id"] == hotel_id:
+            if title:
+                hotel["title"] = title
+            elif name:
+                hotel["name"] = name
+            else:
+                return {"status": "ERROR", "message": "No data provided"}
+            hotel_message = hotel
+            break
+    else:
+        return {"status": "ERROR", "message": "No hotel with provided ID"}
+    return {"status": "OK", "hotel": hotel_message}
+
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True, port=8000)
+    uvicorn.run("main:app", reload=True, port=8005)
