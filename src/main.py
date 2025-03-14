@@ -3,8 +3,15 @@ from fastapi.openapi.docs import (
     get_swagger_ui_html,
 )
 import uvicorn
-from hotels import router as hotels_router
 
+
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+
+from src.api.hotels import router as hotels_router
+from src.database import *
 
 app = FastAPI(docs_url=None)
 app.include_router(hotels_router)
@@ -22,4 +29,4 @@ async def custom_swagger_ui_html():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True, port=8005)
+    uvicorn.run("main:app", reload=True)
