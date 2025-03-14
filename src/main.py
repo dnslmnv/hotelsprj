@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 
 from src.api.hotels import router as hotels_router
-from src.database import *
+
 
 app = FastAPI(docs_url=None)
 app.include_router(hotels_router)
