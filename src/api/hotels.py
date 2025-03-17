@@ -1,6 +1,6 @@
 from fastapi import Query, Body, APIRouter
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, func
 from src.schemas.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
@@ -19,23 +19,26 @@ async def get_hotels(
     async with async_session_maker() as session:
         get_hotel_query = select(HotelsOrm)
         if location:
-            get_hotel_query = get_hotel_query.filter(HotelsOrm.location.ilike(f"%{location}%"))
+            get_hotel_query = (
+                get_hotel_query
+                .filter(func.lower(HotelsOrm.location)
+                .like(f"%{location.lower()}%"))
+            )
         if title:
-            get_hotel_query = get_hotel_query.filter_by(title=title)
+            get_hotel_query = (
+                get_hotel_query
+                .filter(func.lower(HotelsOrm.location)
+                .like(f"%{title.lower()}%"))
+            )
         get_hotel_query= (
             get_hotel_query
             .limit(per_page)
             .offset(per_page * (pagination.page - 1))
         )
+        print(get_hotel_query.compile(engine, compile_kwargs={"literal_binds": True}))
         result = await session.execute(get_hotel_query)
         hotels = result.scalars().all()
         return hotels
-    # hotels_ = []
-    #
-    # if pagination.page and pagination.per_page:
-    #     #chain slicing
-    #     return hotels_[pagination.per_page * (pagination.page - 1):][:pagination.per_page]
-    # return hotels_
 
 
 @router.delete("/{hotel_id}")
