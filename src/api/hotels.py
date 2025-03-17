@@ -1,32 +1,31 @@
 from fastapi import Query, Body, APIRouter
 
-from sqlalchemy import insert
+from sqlalchemy import insert, select
 from src.schemas.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker
+from src.database import async_session_maker, engine
 from src.models.hotels import HotelsOrm
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 @router.get("")
-def get_hotels(
+async def get_hotels(
         pagination: PaginationDep,
         id: int | None = Query(None, description="Айди отеля"),
         title: str | None = Query(None, description="Название отеля")
 ):
-    hotels_ = []
-    for hotel in hotels:
-        if id and hotel["id"] != id:
-            continue
-        if title and hotel["title"] != title:
-            continue
-        hotels_.append(hotel)
-
-    if pagination.page and pagination.per_page:
-        #chain slicing
-        return hotels_[pagination.per_page * (pagination.page - 1):][:pagination.per_page]
-    return hotels_
+    async with async_session_maker as session:
+        get_hotel_query= select(HotelsOrm)
+        result = await session.execute(get_hotel_query)
+        hotels = result.scalars().all()
+        return hotels
+    # hotels_ = []
+    #
+    # if pagination.page and pagination.per_page:
+    #     #chain slicing
+    #     return hotels_[pagination.per_page * (pagination.page - 1):][:pagination.per_page]
+    # return hotels_
 
 
 @router.delete("/{hotel_id}")
@@ -46,7 +45,7 @@ async def create_hotels(
 ):
     async with async_session_maker() as session:
         add_hotel_stmt = insert(HotelsOrm).values(**hotel_data.model_dump())
-        print(add_hotel_stmt.compile(compile_kwargs={"literal_binds": True}))
+        print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         await session.execute(add_hotel_stmt)
         await session.commit()
     return {"status": "OK"}
