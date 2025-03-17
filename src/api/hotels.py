@@ -5,6 +5,7 @@ from src.schemas.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsOrm
+from src.repositories.hotels import HotelsRepository
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -17,28 +18,29 @@ async def get_hotels(
 ):
     per_page = pagination.per_page or 5
     async with async_session_maker() as session:
-        get_hotel_query = select(HotelsOrm)
-        if location:
-            get_hotel_query = (
-                get_hotel_query
-                .filter(func.lower(HotelsOrm.location)
-                .like(f"%{location.lower()}%"))
-            )
-        if title:
-            get_hotel_query = (
-                get_hotel_query
-                .filter(func.lower(HotelsOrm.location)
-                .like(f"%{title.lower()}%"))
-            )
-        get_hotel_query= (
-            get_hotel_query
-            .limit(per_page)
-            .offset(per_page * (pagination.page - 1))
-        )
-        print(get_hotel_query.compile(engine, compile_kwargs={"literal_binds": True}))
-        result = await session.execute(get_hotel_query)
-        hotels = result.scalars().all()
-        return hotels
+        return await HotelsRepository(session).get_all()
+        # get_hotel_query = select(HotelsOrm)
+        # if location:
+        #     get_hotel_query = (
+        #         get_hotel_query
+        #         .filter(func.lower(HotelsOrm.location)
+        #         .contains(location.strip().lower()))
+        #     )
+        # if title:
+        #     get_hotel_query = (
+        #         get_hotel_query
+        #         .filter(func.lower(HotelsOrm.location)
+        #         .contains(title.strip().lower()))
+        #     )
+        # get_hotel_query= (
+        #     get_hotel_query
+        #     .limit(per_page)
+        #     .offset(per_page * (pagination.page - 1))
+        # )
+        # print(get_hotel_query.compile(engine, compile_kwargs={"literal_binds": True}))
+        # result = await session.execute(get_hotel_query)
+        # hotels = result.scalars().all()
+        # return hotels
 
 
 @router.delete("/{hotel_id}")
