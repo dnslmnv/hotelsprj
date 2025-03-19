@@ -41,20 +41,19 @@ async def create_hotels(
                                                    })
 ):
     async with async_session_maker() as session:
-        stm = await HotelsRepository(session).add(location= hotel_data.location, title= hotel_data.title)
+        hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
-    return {"status": "OK"}
+    return {"status": "OK", "data": hotel}
 
 
 @router.put("/{hotel_id}")
-def edit_hotels_put(
+async def edit_hotels_put(
         hotel_id: int,
         hotel_data: Hotel
 ):
-    global hotels
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
-    hotel["title"] = hotel_data.title
-    hotel["location"] = hotel_data.location
+    async with async_session_maker() as session:
+        hotel = await HotelsRepository(session).edit(hotel_data)
+        await session.commit()
     return {"status": "OK"}
 
 
