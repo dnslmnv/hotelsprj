@@ -61,14 +61,11 @@ async def edit_hotels_put(
 @router.patch("/{hotel_id}",
            summary="Частичное обновление данных об отеле",
            description="Можно передавать не все значения")
-def edit_hotels_patch(
+async def edit_hotels_patch(
         hotel_id: int,
         hotel_data: HotelPATCH
 ):
-    global hotels
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
-    if hotel_data.title:
-        hotel["title"] = hotel_data.title
-    if hotel_data.location:
-        hotel["location"] = hotel_data.location
+    async with async_session_maker() as session:
+        hotel = await HotelsRepository(session).edit(hotel_data, exclude_unset=True, id=hotel_id)
+        await session.commit()
     return {"status": "OK"}
