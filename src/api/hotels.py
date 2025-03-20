@@ -1,7 +1,7 @@
 from fastapi import Query, Body, APIRouter
 
 from sqlalchemy import insert
-from src.schemas.hotels import Hotel, HotelPATCH
+from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsOrm
@@ -36,7 +36,7 @@ async def get_hotel(
 async def delete_hotels(
     hotel_id: int,
 ):
-    async with async_session_maker as session:
+    async with async_session_maker() as session:
         hotel = await HotelsRepository(session).delete(id=hotel_id)
         await session.commit()
     return {"status": "OK"}
@@ -44,7 +44,7 @@ async def delete_hotels(
 
 @router.post("")
 async def create_hotels(
-        hotel_data: Hotel = Body(openapi_examples={"1": {"summary": "Tver", "value": {"title": "Volga", "location": "Tver"}},
+        hotel_data: HotelAdd = Body(openapi_examples={"1": {"summary": "Tver", "value": {"title": "Volga", "location": "Tver"}},
                                                    "2": {"summary": "Moscow", "value": {"title": "Tver", "location": "Moscow"}}
                                                    })
 ):
@@ -57,7 +57,7 @@ async def create_hotels(
 @router.put("/{hotel_id}")
 async def edit_hotels_put(
         hotel_id: int,
-        hotel_data: Hotel
+        hotel_data: HotelAdd
 ):
     async with async_session_maker() as session:
         hotel = await HotelsRepository(session).edit(hotel_data, id=hotel_id)
