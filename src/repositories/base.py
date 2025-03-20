@@ -1,5 +1,4 @@
-from httpx import delete
-from sqlalchemy import select, insert, update
+from sqlalchemy import select, insert, update, delete
 from pydantic import BaseModel
 
 class BaseRepository():
@@ -19,14 +18,16 @@ class BaseRepository():
         return result.scalars().one_or_none()
 
     async def add(self, data: BaseModel):
-        add_data_stm = insert(self.model).values(**data.model_dump()).returning(self.model)
-        result = await self.session.execute(add_data_stm)
+        add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
+        result = await self.session.execute(add_data_stmt)
         return result.scalars().one()
 
     async def edit(self, data: BaseModel, **filter_by) -> None:
-        edit_data_stm = update(self.model).filter_by(**filter_by).values(**data.model_dump())
-        await self.session.execute(edit_data_stm)
+        update_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump())
+        await self.session.execute(update_stmt)
+
 
 
     async def delete(self, **filter_by) -> None:
-        delete_data_stm = delete()
+        delete_data_stmt = delete(self.model).filter_by(**filter_by)
+        await self.session.execute(delete_data_stmt)
