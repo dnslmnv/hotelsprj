@@ -57,7 +57,9 @@ async def create_hotels(
 @router.put("/{hotel_id}")
 async def edit_hotels_put(
         hotel_id: int,
-        hotel_data: HotelAdd
+        hotel_data: HotelAdd = Body(openapi_examples={"1": {"summary": "Tver", "value": {"title": "Volga", "location": "Tver"}},
+                                                   "2": {"summary": "Moscow", "value": {"title": "Tver", "location": "Moscow"}}
+                                                   })
 ):
     async with async_session_maker() as session:
         hotel = await HotelsRepository(session).edit(hotel_data, id=hotel_id)
