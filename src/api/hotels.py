@@ -54,7 +54,9 @@ async def create_hotels(
     return {"status": "OK", "data": hotel}
 
 
-@router.put("/{hotel_id}")
+@router.put("/{hotel_id}",
+            summary="обновление данных об отеле",
+            description="передавать все значения")
 async def edit_hotels_put(
         hotel_id: int,
         hotel_data: HotelAdd = Body(openapi_examples={"1": {"summary": "Tver", "value": {"title": "Volga", "location": "Tver"}},
