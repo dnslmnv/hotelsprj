@@ -59,7 +59,7 @@ async def create_hotels(
             description="передавать все значения")
 async def edit_hotels_put(
         hotel_id: int,
-        hotel_data: HotelAdd = Body(openapi_examples={"1": {"summary": "Tver", "value": {"title": "Volga", "location": "Tver"}},
+        hotel_data: HotelAdd = Body(openapi_examples={"1": {"s123ummary": "Tver", "value": {"title": "Volga", "location": "Tver"}},
                                                    "2": {"summary": "Moscow", "value": {"title": "Tver", "location": "Moscow"}}
                                                    })
 ):
