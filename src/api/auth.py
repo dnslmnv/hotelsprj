@@ -2,6 +2,8 @@ from fastapi import Query, Body, APIRouter
 from src.schemas.users import UserAdd, UserRequestAdd
 from src.database import async_session_maker
 from src.repositories.users import UsersRepository
+from passlib.context import CryptContext
+
 
 router = APIRouter(prefix="/auth", tags=["Авторизация и аутентификация"])
 
