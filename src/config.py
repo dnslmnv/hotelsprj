@@ -12,8 +12,12 @@ class Settings(BaseSettings):
     @property
     def DB_URL(self):
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+    
+    JWT_SECRET_KEY: str
 
     model_config = SettingsConfigDict(env_file=".env")
+    
+    
 
 
 settings = Settings()
