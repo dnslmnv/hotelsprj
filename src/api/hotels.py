@@ -4,6 +4,7 @@ from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
 from src.repositories.hotels import HotelsRepository
 
+
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
@@ -39,16 +40,6 @@ async def delete_hotels(
     return {"status": "OK"}
 
 
-@router.delete("/{hotel_id}")
-async def delete_hotels(
-    hotel_id: int,
-):
-    async with async_session_maker() as session:
-        hotel = await HotelsRepository(session).delete(id=hotel_id)
-        await session.commit()
-    return {"status": "OK"}
-
-
 @router.post("")
 async def create_hotels(
         hotel_data: HotelAdd = Body(openapi_examples={"1": {"summary": "Tver", "value": {"title": "Volga", "location": "Tver"}},
@@ -66,9 +57,7 @@ async def create_hotels(
             description="передавать все значения")
 async def edit_hotels_put(
         hotel_id: int,
-        hotel_data: HotelAdd = Body(openapi_examples={"1": {"summary": "Tver", "value": {"title": "Volga", "location": "Tver"}},
-                                                   "2": {"summary": "Moscow", "value": {"title": "Tver", "location": "Moscow"}}
-                                                   })
+        hotel_data: HotelAdd = Body()
 ):
     async with async_session_maker() as session:
         hotel = await HotelsRepository(session).edit(hotel_data, id=hotel_id)
