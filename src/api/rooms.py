@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query
 
 from src.database import async_session_maker
 from src.repositories.rooms import RoomsRepository
+from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatch, RoomPatchRequest
 from src.api.dependencies import DBDep
 
@@ -34,12 +35,15 @@ async def get_room(
 @router.post("/{hotel_id}/rooms")
 async def add_room(
         hotel_id: int,
-        room_data: RoomAddRequest
+        room_data: RoomAddRequest,
+        db: DBDep,
 ):
     _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-    async with async_session_maker() as session:
-        room = await RoomsRepository(session).add(_room_data)
-        await session.commit()
+
+    room = await db.rooms.add(_room_data)
+    rooms_facilities_data = [RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids]
+    await db.rooms_facilities.add_bulk(rooms_facilities_data)
+    await db.commit()
     return {"status": "OK", "data": room}
 
 

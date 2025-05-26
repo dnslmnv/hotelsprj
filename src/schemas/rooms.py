@@ -8,11 +8,13 @@ class RoomAdd(BaseModel):
     price: int
     quantity: int
 
+
 class RoomAddRequest(BaseModel):
     title: str
     description: str | None = None
     price: int
     quantity: int
+    facilities_ids: list[int] | None = None
 
 
 class RoomPatch(BaseModel):
