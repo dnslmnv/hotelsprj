@@ -26,10 +26,10 @@ async def get_rooms(
 @router.get("/{hotel_id}/rooms/{room_id}")
 async def get_room(
         hotel_id: int,
-        room_id: int
+        room_id: int,
+        db: DBDep,
 ):
-    async with async_session_maker() as session:
-        return await RoomsRepository(session).get_one_or_none(id=room_id, hotel_id=hotel_id)
+    return await db.rooms.get_one_or_none_with_rels(id=room_id, hotel_id=hotel_id)
 
 
 @router.post("/{hotel_id}/rooms")
@@ -52,11 +52,14 @@ async def edit_room_patch(
         hotel_id: int,
         room_id: int,
         room_data: RoomPatchRequest,
+        db: DBDep,
 ):
-    _room_data = RoomPatch(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
-    async with async_session_maker() as session:
-        await RoomsRepository(session).edit(_room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id)
-        await session.commit()
+    _room_data_dict = room_data.model_dump(exclude_unset=True)
+    _room_data = RoomPatch(hotel_id=hotel_id, **_room_data_dict)
+    await db.rooms.edit(_room_data, id=room_id, hotel_id=hotel_id)
+    if "facilities_ids" in _room_data_dict:
+        await db.rooms_facilities.set_room_facilities(room_id, facilities_ids=_room_data_dict["facilities_ids"])
+    await db.commit()
     return {"status": "OK"}
 
 
@@ -65,11 +68,12 @@ async def edit_room_put(
         hotel_id: int,
         room_id: int,
         room_data: RoomAddRequest,
+        db: DBDep,
 ):
     _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
-    async with async_session_maker() as session:
-        await RoomsRepository(session).edit(_room_data, id=room_id)
-        await session.commit()
+    await db.rooms.edit(_room_data, id=room_id)
+    await db.rooms_facilities.set_room_facilities(room_id, facilities_ids=_room_data.facilities_ids)
+    await db.commit()
     return {"status": "OK"}
 
 

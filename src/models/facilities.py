@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, ForeignKey
 
 from src.database import Base
@@ -11,6 +11,11 @@ class Facilities(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[int] = mapped_column(String(100))
+
+    rooms: Mapped[list["RoomsOrm"]] = relationship(
+        back_populates="rooms",
+        secondary="room_facilities",
+    )
 
 
 class RoomsFacilities(Base):

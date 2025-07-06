@@ -2,6 +2,7 @@ from datetime import date
 
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository
+from src.repositories.mappers.mappers import HotelDataMapper
 from src.models.hotels import HotelsOrm
 from sqlalchemy import select, func
 
@@ -10,7 +11,8 @@ from src.schemas.hotels import Hotel
 
 class HotelsRepository(BaseRepository):
     model = HotelsOrm
-    schema = Hotel
+    mapper = HotelDataMapper
+
     # async def get_all(self,
     #                   location,
     #                   title,
@@ -60,5 +62,5 @@ class HotelsRepository(BaseRepository):
 
         result = await self.session.execute(get_hotel_query)
 
-        return [self.schema.model_validate(model, from_attributes=True) for model in result.scalars().all()]
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
