@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import ForeignKey
 from src.database import Base
 
 
@@ -13,8 +13,8 @@ class RoomsOrm(Base):
     price: Mapped[int]
     quantity: Mapped[int]
 
-    facilities: Mapped[list["Facilities"]] = relationship(
-        back_populates="facilities",
-        secondary="room_facilities",
+    facilities: Mapped[list["FacilitiesOrm"]] = relationship(
+        back_populates="rooms",
+        secondary="rooms_facilities",
     )
 
