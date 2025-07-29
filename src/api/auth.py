@@ -3,7 +3,7 @@ from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timezone, timedelta
 
-
+from src.api.dependencies import DBDep
 from src.schemas.users import UserAdd, UserRequestAdd
 from src.database import async_session_maker
 from src.repositories.users import UsersRepository
@@ -16,13 +16,16 @@ router = APIRouter(prefix="/auth", tags=["Авторизация и аутент
 
 @router.post("/register")
 async def register_user(
-        data: UserRequestAdd
+        data: UserRequestAdd,
+        db: DBDep,
 ):
-    hashed_password = AuthService().hash_password(password=data.password)
-    new_user_data = UserAdd(email=data.email, hashed_password=hashed_password)
-    async with async_session_maker() as session:
-        await UsersRepository(session).add(new_user_data)
-        await session.commit()
+    try:
+        hashed_password = AuthService().hash_password(data.password)
+        new_user_data = UserAdd(email=data.email, hashed_password=hashed_password)
+        await db.users.add(new_user_data)
+        await db.commit()
+    except:
+        raise HTTPException(status_code=400)
     return {"status":"OK"}
 
 

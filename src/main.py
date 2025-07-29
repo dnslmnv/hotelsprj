@@ -8,6 +8,7 @@ import uvicorn
 import sys
 from pathlib import Path
 
+from src.config import settings
 
 sys.path.append(str(Path(__file__).parent.parent))
 from contextlib import asynccontextmanager
@@ -28,6 +29,7 @@ async def lifespan(app: FastAPI):
     FastAPICache.init(RedisBackend(redis_manager.redis), prefix="fastapi-cache")
     yield
     redis_manager.close()
+
 
 app = FastAPI(docs_url=None)
 app.include_router(auth_router)
