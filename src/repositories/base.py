@@ -3,25 +3,21 @@ from pydantic import BaseModel
 
 from src.repositories.mappers.base import DataMapper
 
-class BaseRepository():
+
+class BaseRepository:
     model = None
     mapper: DataMapper = None
+
     def __init__(self, session):
         self.session = session
 
     async def get_filtered(self, *filter, **filter_by):
-        query = (
-            select(self.model)
-            .filter(*filter)
-            .filter_by(**filter_by)
-        )
+        query = select(self.model).filter(*filter).filter_by(**filter_by)
         result = await self.session.execute(query)
-        return  [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
-
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
     async def get_all(self, *args, **kwargs):
         return await self.get_filtered()
-
 
     async def get_one_or_none(self, **filter_by):
         query = select(self.model).filter_by(**filter_by)
@@ -30,7 +26,6 @@ class BaseRepository():
         if res is None:
             return None
         return self.mapper.map_to_domain_entity(res)
-
 
     async def add(self, data: BaseModel):
         add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
@@ -45,11 +40,10 @@ class BaseRepository():
         update_stmt = (
             update(self.model)
             .filter_by(**filter_by)
-            .values(**data.model_dump(exclude_unset=exclude_unset)))
+            .values(**data.model_dump(exclude_unset=exclude_unset))
+        )
         await self.session.execute(update_stmt)
-
 
     async def delete(self, **filter_by) -> None:
         delete_data_stmt = delete(self.model).filter_by(**filter_by)
         await self.session.execute(delete_data_stmt)
-

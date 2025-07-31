@@ -9,6 +9,7 @@ from sqlalchemy import select, func
 from src.repositories.utils import rooms_ids_for_booking
 from src.schemas.hotels import Hotel
 
+
 class HotelsRepository(BaseRepository):
     model = HotelsOrm
     mapper = HotelDataMapper
@@ -20,15 +21,14 @@ class HotelsRepository(BaseRepository):
     #                   offset
     # ) -> list[Hotel]:
 
-
     async def get_filtered_by_time(
-            self,
-            date_from: date,
-            date_to: date,
-            location: str,
-            title: str,
-            limit: int,
-            offset: int,
+        self,
+        date_from: date,
+        date_to: date,
+        location: str,
+        title: str,
+        limit: int,
+        offset: int,
     ) -> list[Hotel]:
         rooms_ids_to_get = rooms_ids_for_booking(date_from=date_from, date_to=date_to)
 
@@ -41,26 +41,17 @@ class HotelsRepository(BaseRepository):
         get_hotel_query = select(HotelsOrm).filter(HotelsOrm.id.in_(hotels_ids_to_get))
 
         if location:
-            get_hotel_query = (
-                get_hotel_query
-                .filter(func.lower(HotelsOrm.location)
-                        .contains(location.strip().lower()))
+            get_hotel_query = get_hotel_query.filter(
+                func.lower(HotelsOrm.location).contains(location.strip().lower())
             )
 
         if title:
-            get_hotel_query = (
-                get_hotel_query
-                .filter(func.lower(HotelsOrm.location)
-                        .contains(title.strip().lower()))
+            get_hotel_query = get_hotel_query.filter(
+                func.lower(HotelsOrm.location).contains(title.strip().lower())
             )
 
-        get_hotel_query = (
-            get_hotel_query
-            .limit(limit)
-            .offset(offset)
-        )
+        get_hotel_query = get_hotel_query.limit(limit).offset(offset)
 
         result = await self.session.execute(get_hotel_query)
 
         return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
-

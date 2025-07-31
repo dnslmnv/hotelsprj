@@ -1,5 +1,6 @@
 from unittest import mock
-mock.patch("fastapi_cache.decorator.cache", lambda *args, **kwargs: lambda f: f).start()
+patcher = mock.patch("fastapi_cache.decorator.cache", lambda *args, **kwargs: lambda f: f)
+patcher.start()
 
 from pathlib import Path
 import json
@@ -80,3 +81,4 @@ async def authenticated_ac(register_user, ac):
     )
     assert ac.cookies["access_token"]
     yield ac
+

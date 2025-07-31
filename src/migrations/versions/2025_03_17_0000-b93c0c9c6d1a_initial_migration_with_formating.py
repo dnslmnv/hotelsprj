@@ -1,7 +1,7 @@
 """initial migration with formating
 
 Revision ID: b93c0c9c6d1a
-Revises: 
+Revises:
 Create Date: 2025-03-17 00:00:02.435444
 
 """

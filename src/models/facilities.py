@@ -18,7 +18,6 @@ class FacilitiesOrm(Base):
     )
 
 
-
 class RoomsFacilitiesOrm(Base):
     __tablename__ = "rooms_facilities"
 

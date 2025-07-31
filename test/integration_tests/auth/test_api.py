@@ -29,6 +29,7 @@ async def test_auth_flow(email: str, password: str, status_code: int, ac):
             "password": password,
         }
     )
+
     assert resp_login.status_code == 200
     assert ac.cookies["access_token"]
     assert "access_token" in resp_login.json()
