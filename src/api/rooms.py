@@ -78,8 +78,7 @@ async def edit_room_put(
 
 
 @router.delete("/{hotel_id}/rooms/{room_id}")
-async def delete_room(hotel_id: int, room_id: int):
-    async with async_session_maker() as session:
-        await RoomsRepository(session).delete(id=room_id, hotel_id=hotel_id)
-        await session.commit()
+async def delete_room(hotel_id: int, room_id: int, db: DBDep):
+    room = await db.rooms.delete(id=room_id, hotel_id=hotel_id)
+    await db.commit()
     return {"status": "OK"}

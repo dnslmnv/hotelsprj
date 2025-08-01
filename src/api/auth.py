@@ -30,30 +30,29 @@ async def register_user(
 
 
 @router.post("/login")
-async def login_user(data: UserRequestAdd, response: Response):
-    async with async_session_maker() as session:
-        user = await UsersRepository(session).get_user_with_hashed_password(email=data.email)
-        if not user:
-            raise HTTPException(
-                status_code=401, detail="Пользователь с таким email не зарегестрирован"
-            )
-        if not AuthService().verify_password(
-            plain_password=data.password, hashed_password=user.hashed_password
-        ):
-            raise HTTPException(status_code=401, detail="Неверный пароль")
-        access_token = AuthService().create_access_token({"user_id": user.id})
-        response.set_cookie("access_token", access_token)
-        return {"access_token": access_token}
+async def login_user(data: UserRequestAdd, response: Response, db: DBDep):
+    user = await db.users.get_user_with_hashed_password(email=data.email)
+    if not user:
+        raise HTTPException(
+            status_code=401, detail="Пользователь с таким email не зарегестрирован"
+        )
+    if not AuthService().verify_password(
+        plain_password=data.password, hashed_password=user.hashed_password
+    ):
+        raise HTTPException(status_code=401, detail="Неверный пароль")
+    access_token = AuthService().create_access_token({"user_id": user.id})
+    response.set_cookie("access_token", access_token)
+    return {"access_token": access_token}
 
 
 @router.get("/me")
 async def me(
     request: Request,
     user_id: UserIdDep,
+    db: DBDep
 ):
-    async with async_session_maker() as session:
-        user = await UsersRepository(session).get_one_or_none(id=user_id)
-        return user
+    user = await db.users.get_one_or_none(id=user_id)
+    return user
 
 
 @router.post("/logout")
