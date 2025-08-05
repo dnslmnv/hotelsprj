@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from PIL import Image
 import os
@@ -10,11 +11,13 @@ from src.utils.db_manager import DBManager
 
 @celery_instance.task
 def test_task():
+    print("Селери задача отработала")
     pass
 
 
 @celery_instance.task
 def resize_image(image_path: str):
+    logging.debug(f"Вызывается функция с {image_path}")
     sizes = [1000, 500, 200]
     output_folder = "src/static/images"
 

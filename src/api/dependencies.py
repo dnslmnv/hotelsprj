@@ -1,8 +1,8 @@
-from fastapi import Query, Depends, Request, HTTPException
+from fastapi import Depends, Query, Request
 from pydantic import BaseModel
 from typing import Annotated
 
-
+from src.exceptions import IncorrectTokenException, IncorrectTokenHTTPException, NoAccessTokenHTTPException
 from src.database import async_session_maker
 from src.services.auth import AuthService
 from src.utils.db_manager import DBManager
@@ -19,14 +19,16 @@ PaginationDep = Annotated[PaginationParams, Depends()]
 def get_token(request: Request) -> str:
     token = request.cookies.get("access_token", None)
     if not token:
-        raise HTTPException(status_code=401, detail="Нет jwt")
+        raise NoAccessTokenHTTPException
     return token
 
 
 def get_current_user_id(token: str = Depends(get_token)) -> int:
-    decode_token = AuthService().decode_token(token)
-    user_id = decode_token["user_id"]
-    return user_id
+    try:
+        data = AuthService().decode_token(token)
+    except IncorrectTokenException:
+        raise IncorrectTokenHTTPException
+    return data["user_id"]
 
 
 UserIdDep = Annotated[int, Depends(get_current_user_id)]

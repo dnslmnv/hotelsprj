@@ -1,7 +1,12 @@
+import logging
+
+from asyncpg import UniqueViolationError
 from sqlalchemy import select, insert, update, delete
 from pydantic import BaseModel
 
+from src.exceptions import ObjectNotFoundException, ObjectAlreadyExistsException
 from src.repositories.mappers.base import DataMapper
+from sqlalchemy.exc import NoResultFound, IntegrityError
 
 
 class BaseRepository:
@@ -27,10 +32,27 @@ class BaseRepository:
             return None
         return self.mapper.map_to_domain_entity(res)
 
+    async def get_one(self, **filter_by):
+        query = select(self.model).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        try:
+            res = result.scalars().one()
+        except NoResultFound:
+            raise ObjectNotFoundException
+        return self.mapper.map_to_domain_entity(res)
+
     async def add(self, data: BaseModel):
-        add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
-        result = await self.session.execute(add_data_stmt)
-        return self.mapper.map_to_domain_entity(result.scalars().one())
+        try:
+            add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
+            result = await self.session.execute(add_data_stmt)
+            return self.mapper.map_to_domain_entity(result.scalars().one())
+        except IntegrityError as ex:
+            logging.error(f"Не удалось добавить данные в БД. Входные данные: {data}. Тип ошибки: {type(ex.orig.__cause__)}")
+            if isinstance(ex.orig.__cause__, UniqueViolationError):
+                raise ObjectAlreadyExistsException from ex
+            else:
+                logging.error(f"Незнакомая ошибка. Входные данные: {data}. Тип ошибки: {type(ex.orig.__cause__)}")
+                raise ex
 
     async def add_bulk(self, data: list[BaseModel]):
         add_data_stmt = insert(self.model).values([item.model_dump() for item in data])
